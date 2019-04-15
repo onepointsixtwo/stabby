@@ -152,7 +152,7 @@ class InjectorInfo<T>: InjectableField {
 
 class StabbyTests: XCTestCase {
 
-    func testExample() {
+    func testBasicInjection() {
         // Given
 
         let inj = Injector()
@@ -168,6 +168,25 @@ class StabbyTests: XCTestCase {
         XCTAssertEqual(presenter.injectableField, "Life, the universe, and everything.")
         XCTAssertEqual(presenter.injectableField2, 42)
     }
+
+    func testNamedParameterInjection() {
+        // Given
+
+        let inj = Injector()
+        inj.registerDependency(type: String.self, instance: "Life, the universe, and everything.")
+        inj.registerDependency(type: Int.self, instance: 42)
+        inj.registerDependency(type: String.self, instance: "Testing", named: "test")
+        inj.registerDependency(type: Int.self, instance: 56, named: "test")
+
+        let presenter = NamedFieldsPresenter()
+
+        // When
+        inj.inject(injectable: presenter)
+
+        // Then
+        XCTAssertEqual(presenter.injectableField, "Testing")
+        XCTAssertEqual(presenter.injectableField2, 56)
+    }
 }
 
 final class Presenter: Injectable {
@@ -179,6 +198,18 @@ final class Presenter: Injectable {
         return [
             getInjectField(injector: { value in self.injectableField = value }, type: String.self),
             getInjectField(injector: { value in self.injectableField2 = value }, type: Int.self)
+        ]
+    }
+}
+
+final class NamedFieldsPresenter: Injectable {
+    var injectableField: String!
+    var injectableField2: Int!
+
+    func getInjectableFields() -> [InjectableField] {
+        return [
+            getInjectField(injector: { value in self.injectableField = value }, type: String.self, injectableName: "test"),
+            getInjectField(injector: { value in self.injectableField2 = value }, type: Int.self, injectableName: "test")
         ]
     }
 }
